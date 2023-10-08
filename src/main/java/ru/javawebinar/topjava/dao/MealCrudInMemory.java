@@ -8,13 +8,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class MealCrudImpl implements MealCrud{
+public class MealCrudInMemory implements MealCrud {
 
     private final Map<Integer, Meal> mealMap;
+    private static final AtomicInteger counter = new AtomicInteger(0);
 
-    public MealCrudImpl() {
+    public MealCrudInMemory() {
         this.mealMap = new ConcurrentHashMap<>();
         Arrays.asList(
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
@@ -24,12 +27,16 @@ public class MealCrudImpl implements MealCrud{
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000),
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
-        ).forEach(meal -> mealMap.put(meal.getId(), meal));
+        ).forEach(this::save);
     }
 
     @Override
-    public void save(Meal meal) {
+    public Meal save(Meal meal) {
+        if(Objects.isNull(meal.getId())) {
+            meal.setId(nextId());
+        }
         mealMap.put(meal.getId(), meal);
+        return meal;
     }
 
     @Override
@@ -45,5 +52,9 @@ public class MealCrudImpl implements MealCrud{
     @Override
     public List<Meal> getAll() {
         return new ArrayList<>(mealMap.values());
+    }
+
+    private static int nextId(){
+        return counter.getAndIncrement();
     }
 }

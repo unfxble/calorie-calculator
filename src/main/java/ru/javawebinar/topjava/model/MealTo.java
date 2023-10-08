@@ -1,10 +1,7 @@
 package ru.javawebinar.topjava.model;
 
-import ru.javawebinar.topjava.util.IdGenerator;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 public class MealTo {
 
@@ -14,26 +11,19 @@ public class MealTo {
     private final int calories;
     private final boolean excess;
 
-    public MealTo(LocalDateTime dateTime, String description, int calories, boolean excess) {
-        this.id = IdGenerator.nextId();
+    public MealTo(Integer id, LocalDateTime dateTime, String description, int calories, boolean excess) {
+        this.id = id;
         this.dateTime = dateTime;
         this.description = description;
         this.calories = calories;
         this.excess = excess;
     }
 
-    public MealTo(Meal meal, boolean excess) {
-        this.id = Objects.isNull(meal.getId()) ? IdGenerator.nextId() : meal.getId();
-        this.dateTime = meal.getDateTime();
-        this.description = meal.getDescription();
-        this.calories = meal.getCalories();
-        this.excess = excess;
-    }
-
     @Override
     public String toString() {
         return "MealTo{" +
-                "dateTime=" + dateTime +
+                "id=" + id +
+                ", dateTime=" + dateTime +
                 ", description='" + description + '\'' +
                 ", calories=" + calories +
                 ", excess=" + excess +
