@@ -12,12 +12,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MealCrudInMemory implements MealCrud {
+public class InMemoryMealCrud implements MealCrud {
 
     private final Map<Integer, Meal> mealMap;
-    private static final AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicInteger counter = new AtomicInteger(0);
 
-    public MealCrudInMemory() {
+    public InMemoryMealCrud() {
         this.mealMap = new ConcurrentHashMap<>();
         Arrays.asList(
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
@@ -32,8 +32,10 @@ public class MealCrudInMemory implements MealCrud {
 
     @Override
     public Meal save(Meal meal) {
-        if(Objects.isNull(meal.getId())) {
-            meal.setId(nextId());
+        if (Objects.isNull(meal.getId())) {
+            meal.setId(counter.getAndIncrement());
+        } else if (!mealMap.containsKey(meal.getId())) {
+            return null;
         }
         mealMap.put(meal.getId(), meal);
         return meal;
@@ -52,9 +54,5 @@ public class MealCrudInMemory implements MealCrud {
     @Override
     public List<Meal> getAll() {
         return new ArrayList<>(mealMap.values());
-    }
-
-    private static int nextId(){
-        return counter.getAndIncrement();
     }
 }

@@ -1,7 +1,7 @@
 package ru.javawebinar.topjava.web;
 
 import ru.javawebinar.topjava.dao.MealCrud;
-import ru.javawebinar.topjava.dao.MealCrudInMemory;
+import ru.javawebinar.topjava.dao.InMemoryMealCrud;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
@@ -25,9 +25,8 @@ public class MealServlet extends HttpServlet {
     private MealCrud mealCrud;
 
     @Override
-    public void init() throws ServletException {
-        super.init();
-        this.mealCrud = new MealCrudInMemory();
+    public void init() {
+        this.mealCrud = new InMemoryMealCrud();
     }
 
     @Override
@@ -42,7 +41,7 @@ public class MealServlet extends HttpServlet {
                 resp.sendRedirect("meals");
                 return;
             case "edit":
-                Meal oldMeal =  Optional.ofNullable(req.getParameter("mealId"))
+                Meal oldMeal = Optional.ofNullable(req.getParameter("mealId"))
                         .map(Integer::parseInt)
                         .map(mealCrud::getById)
                         .orElseThrow(() -> new UnsupportedOperationException("Can't edit meal without id"));
