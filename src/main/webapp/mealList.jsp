@@ -33,7 +33,7 @@
     <tbody>
     <c:forEach items="${meals}" var="meal">
         <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.MealTo"/>
-        <tr class=${meal.excess == true ? 'red' : 'green'}>
+        <tr class=${meal.excess ? 'red' : 'green'}>
             <td>${TimeUtil.toDateTimeFormat(meal.dateTime)}</td>
             <td>${meal.description}</td>
             <td>${meal.calories}</td>

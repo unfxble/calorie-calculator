@@ -1,6 +1,5 @@
 package ru.javawebinar.topjava.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class MealTo {
@@ -48,9 +47,5 @@ public class MealTo {
 
     public boolean isExcess() {
         return excess;
-    }
-
-    public LocalDate getLocalDate() {
-        return dateTime.toLocalDate();
     }
 }

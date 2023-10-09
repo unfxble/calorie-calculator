@@ -1,5 +1,7 @@
 package ru.javawebinar.topjava.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.javawebinar.topjava.dao.MealCrud;
 import ru.javawebinar.topjava.dao.InMemoryMealCrud;
 import ru.javawebinar.topjava.model.Meal;
@@ -19,9 +21,11 @@ import java.util.Optional;
 
 public class MealServlet extends HttpServlet {
 
-    private final int MAX_CALORIES = 2000;
-    private final String MEAL_LIST_JSP = "/mealList.jsp";
-    private final String SAVE_MEAL_JSP = "/saveMeal.jsp";
+    private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
+
+    private static final int MAX_CALORIES = 2000;
+    private static final String MEAL_LIST_JSP = "/mealList.jsp";
+    private static final String SAVE_MEAL_JSP = "/saveMeal.jsp";
     private MealCrud mealCrud;
 
     @Override
@@ -36,22 +40,26 @@ public class MealServlet extends HttpServlet {
 
         switch (action) {
             case "delete":
+                log.info("Delete meal");
                 String id = req.getParameter("mealId");
                 mealCrud.delete(Integer.parseInt(id));
                 resp.sendRedirect("meals");
                 return;
             case "edit":
+                log.info("Edit meal");
                 Meal oldMeal = Optional.ofNullable(req.getParameter("mealId"))
                         .map(Integer::parseInt)
                         .map(mealCrud::getById)
                         .orElseThrow(() -> new UnsupportedOperationException("Can't edit meal without id"));
                 req.setAttribute("meal", oldMeal);
             case "add":
+                log.info("Add meal");
                 redirectTo = SAVE_MEAL_JSP;
                 RequestDispatcher updateView = req.getRequestDispatcher(redirectTo);
                 updateView.forward(req, resp);
                 break;
             default:
+                log.info("Get all meals");
                 List<MealTo> mealsWithExceed = MealsUtil.filteredByStreams(mealCrud.getAll(), LocalTime.MIN, LocalTime.MAX, MAX_CALORIES);
                 req.setAttribute("meals", mealsWithExceed);
                 RequestDispatcher defaultView = req.getRequestDispatcher(redirectTo);
@@ -62,10 +70,19 @@ public class MealServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         req.setCharacterEncoding("UTF-8");
-        Integer id = Optional.ofNullable(req.getParameter("mealId")).filter(this::isNotBlank).map(Integer::parseInt).orElse(null);
-        LocalDateTime dateTime = Optional.ofNullable(req.getParameter("dateTime")).filter(this::isNotBlank).map(LocalDateTime::parse).orElseGet(LocalDateTime::now);
+        log.info("Save or edit meal");
+        Integer id = Optional.ofNullable(req.getParameter("mealId"))
+                .filter(this::isNotBlank)
+                .map(Integer::parseInt)
+                .orElse(null);
+        LocalDateTime dateTime = Optional.ofNullable(req.getParameter("dateTime"))
+                .filter(this::isNotBlank).map(LocalDateTime::parse)
+                .orElseThrow(() -> new UnsupportedOperationException("Can't save meal without date and time"));
         String description = req.getParameter("description");
-        Integer calories = Optional.ofNullable(req.getParameter("calories")).filter(this::isNotBlank).map(Integer::parseInt).orElse(0);
+        int calories = Optional.ofNullable(req.getParameter("calories"))
+                .filter(this::isNotBlank)
+                .map(Integer::parseInt)
+                .orElseThrow(() -> new UnsupportedOperationException("Can't save meal without calories"));
         Meal meal = new Meal(id, dateTime, description, calories);
         mealCrud.save(meal);
         resp.sendRedirect("meals");
