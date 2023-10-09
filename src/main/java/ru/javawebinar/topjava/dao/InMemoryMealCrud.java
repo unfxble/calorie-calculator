@@ -34,9 +34,10 @@ public class InMemoryMealCrud implements MealCrud {
     public Meal save(Meal meal) {
         if (Objects.isNull(meal.getId())) {
             meal.setId(counter.getAndIncrement());
-            return mealMap.putIfAbsent(meal.getId(), meal);
+            mealMap.put(meal.getId(), meal);
+            return meal;
         } else {
-            return mealMap.computeIfPresent(meal.getId(), (a, b) -> meal);
+            return mealMap.computeIfPresent(meal.getId(), (mealId, oldMeal) -> meal);
         }
     }
 

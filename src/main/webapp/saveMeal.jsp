@@ -11,7 +11,7 @@
     <input type="hidden" readonly="readonly" name="mealId" value="${meal.id}"/><br/>
     Date and time : <input type="datetime-local" name="dateTime" value="${meal.dateTime}"/><br/>
     Description : <input type="text" name="description" value="${meal.description}"/><br/>
-    Calories : <input type="number" name="calories" value="${meal.calories}"/><br/>
+    Calories : <input type="number" name="calories" value="${not empty meal.calories ? meal.calories : 0}"/><br/>
     <input type="submit" value="Submit"/>
     <button onclick="window.history.back()" type="button">Cancel</button>
 </form>
