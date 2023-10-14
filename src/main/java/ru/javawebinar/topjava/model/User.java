@@ -2,7 +2,11 @@ package ru.javawebinar.topjava.model;
 
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Set;
 
 import static ru.javawebinar.topjava.util.MealsUtil.DEFAULT_CALORIES_PER_DAY;
 
@@ -19,6 +23,10 @@ public class User extends AbstractNamedEntity {
     private Set<Role> roles;
 
     private int caloriesPerDay;
+
+    public User(String name, String email, String password, Set<Role> roles) {
+        this(null, name, email, password, DEFAULT_CALORIES_PER_DAY, true, roles);
+    }
 
     public User(Integer id, String name, String email, String password, Role... roles) {
         this(id, name, email, password, DEFAULT_CALORIES_PER_DAY, true, Arrays.asList(roles));
