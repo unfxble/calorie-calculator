@@ -1,18 +1,26 @@
 package ru.javawebinar.topjava.web.meal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
-import ru.javawebinar.topjava.to.FilterTo;
 import ru.javawebinar.topjava.to.MealTo;
 
-import java.util.Collection;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
+import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
+import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
 @Controller
 public class MealRestController {
+
+    private static final Logger log = LoggerFactory.getLogger(MealRestController.class);
+
     private final MealService service;
 
     public MealRestController(MealService service) {
@@ -20,27 +28,36 @@ public class MealRestController {
     }
 
     public Meal create(Meal meal) {
+        log.info("MealController:: save meal - {}", meal);
+        checkNew(meal);
         return service.create(authUserId(), meal);
     }
 
-    public Meal update(Meal meal) {
+    public Meal update(Meal meal, int id) {
+        log.info("MealController:: update meal - {}", meal);
+        assureIdConsistent(meal, id);
         return service.update(authUserId(), meal);
     }
 
     public void delete(int id) {
+        log.info("MealController:: delete meal with id - {}", id);
         service.delete(authUserId(), id);
     }
 
     public Meal get(int id) {
+        log.info("MealController:: get meal with id - {}", id);
         return service.get(authUserId(), id);
     }
 
-    public Collection<MealTo> getAll() {
+    public List<MealTo> getAll() {
+        log.info("MealController:: get all mealTos");
         return service.getAll(authUserId(), authUserCaloriesPerDay());
     }
 
-    public Collection<MealTo> getBetween(FilterTo filter) {
-        return service.getBetween(authUserId(), authUserCaloriesPerDay(), filter);
+    public List<MealTo> getBetween(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
+        log.info("MealController:: get all mealTos, input filter params: " +
+                "startDate - {}, endDate - {}, startTime -{}, endTime -{}", startDate, endDate, startTime, endTime);
+        return service.getBetween(authUserId(), authUserCaloriesPerDay(),
+                startDate, endDate, startTime, endTime);
     }
-
 }

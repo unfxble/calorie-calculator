@@ -5,19 +5,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
-import ru.javawebinar.topjava.to.FilterTo;
 import ru.javawebinar.topjava.util.DateTimeUtil;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository
@@ -36,62 +35,55 @@ public class InMemoryMealRepository implements MealRepository {
 
     @Override
     public Meal save(int userId, Meal meal) {
-        log.info("userId: {}, save meal: {}", userId, meal);
+        log.info("InMemoryMealRepository:: userId - {}, save meal - {}", userId, meal);
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
-            return userMealRepository.computeIfAbsent(userId, k -> new ConcurrentHashMap<>())
-                    .put(meal.getId(), meal);
+            userMealRepository.computeIfAbsent(userId, k -> new ConcurrentHashMap<>()).put(meal.getId(), meal);
+            return meal;
         }
         // handle case: update, but not present in storage
-        return Optional.ofNullable(userMealRepository.getOrDefault(userId, null))
+        return Optional.ofNullable(userMealRepository.get(userId))
                 .map(meals -> meals.computeIfPresent(meal.getId(), (id, oldMeal) -> meal))
                 .orElse(null);
     }
 
     @Override
     public boolean delete(int userId, int id) {
-        log.info("Delete meal with id: {}", id);
+        log.info("InMemoryMealRepository:: delete meal with id - {}", id);
         return Optional.ofNullable(userMealRepository.get(userId))
-                .map(meal -> meal.remove(id))
+                .map(mealMap -> mealMap.remove(id))
                 .isPresent();
     }
 
     @Override
     public Meal get(int userId, int id) {
-        log.info("Get meal with id: {}", id);
+        log.info("InMemoryMealRepository:: get meal with id - {}", id);
         return Optional.ofNullable(userMealRepository.get(userId))
                 .map(meals -> meals.get(id))
                 .orElse(null);
     }
 
     @Override
-    public Collection<Meal> getAll(Integer userId) {
-        log.info("userId: {}, get all meals", userId);
-        return Optional.ofNullable(userMealRepository.get(userId))
-                .map(Map::values)
-                .map(meals -> meals.stream()
-                        .sorted(Comparator.comparing(Meal::getDate).reversed())
-                        .collect(Collectors.toList()))
-                .orElseGet(Collections::emptyList);
+    public List<Meal> getAll(int userId) {
+        log.info("InMemoryMealRepository:: userId - {}, get all meals", userId);
+        return filterByPredicate(userId, meal -> true);
     }
 
     @Override
-    public Collection<Meal> getBetween(Integer userId, FilterTo filter) {
-
-        LocalDate startDate = Optional.ofNullable(filter.getStartDate()).filter(this::isNotBlank).map(LocalDate::parse).orElse(LocalDate.MIN);
-        LocalDate endDate = Optional.ofNullable(filter.getEndDate()).filter(this::isNotBlank).map(LocalDate::parse).orElse(LocalDate.MAX);
-
-        LocalTime startTime = Optional.ofNullable(filter.getStartTime()).filter(this::isNotBlank).map(LocalTime::parse).orElse(LocalTime.MIN);
-        LocalTime endTime = Optional.ofNullable(filter.getEndTime()).filter(this::isNotBlank).map(LocalTime::parse).orElse(LocalTime.MAX);
-
-        return getAll(userId).stream()
-                .filter(meal -> DateTimeUtil.isBetween(meal.getDate(), startDate, endDate))
-                .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getTime(), startTime, endTime))
-                .collect(Collectors.toList());
+    public List<Meal> getBetween(int userId, LocalDate startDate, LocalDate endDate) {
+        log.info("InMemoryMealRepository:: userId - {}, get all meals with filter startDate - {}, endDate - {}",
+                userId, startDate, endDate);
+        return filterByPredicate(userId, meal -> DateTimeUtil.isBetween(meal.getDate(), startDate, endDate));
     }
 
-    private boolean isNotBlank(String str) {
-        return str != null && !str.trim().isEmpty();
+    private List<Meal> filterByPredicate(int userId, Predicate<Meal> filter) {
+        return Optional.ofNullable(userMealRepository.get(userId))
+                .map(Map::values)
+                .map(meals -> meals.stream()
+                        .filter(filter)
+                        .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                        .collect(Collectors.toList()))
+                .orElseGet(Collections::emptyList);
     }
 }
 

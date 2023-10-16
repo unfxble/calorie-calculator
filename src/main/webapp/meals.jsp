@@ -27,13 +27,15 @@
                 <td>
                     <div>
                         <label for="startDate">От даты (включая)</label>
-                        <input type="date" name="startDate" id="startDate" autocomplete="off">
+                        <input type="date" name="startDate" id="startDate" value="${param.get("startDate")}"
+                               autocomplete="off">
                     </div>
                 </td>
                 <td>
                     <div>
                         <label for="endDate">До даты (включая)</label>
-                        <input type="date" name="endDate" id="endDate" autocomplete="off">
+                        <input type="date" name="endDate" id="endDate" value="${param.get("endDate")}"
+                               autocomplete="off">
                     </div>
                 </td>
             </tr>
@@ -41,13 +43,15 @@
                 <td>
                     <div>
                         <label for="startTime">От времени (включая)</label>
-                        <input type="time" name="startTime" id="startTime" autocomplete="off">
+                        <input type="time" name="startTime" id="startTime" value="${param.get("startTime")}"
+                               autocomplete="off">
                     </div>
                 </td>
                 <td>
                     <div>
                         <label for="endTime">До времени (исключая)</label>
-                        <input type="time" name="endTime" id="endTime" autocomplete="off">
+                        <input type="time" name="endTime" id="endTime" value="${param.get("endTime")}"
+                               autocomplete="off">
                     </div>
                 </td>
             </tr>

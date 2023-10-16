@@ -1,18 +1,24 @@
 package ru.javawebinar.topjava.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
-import ru.javawebinar.topjava.to.FilterTo;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
 
-import java.util.Collection;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 
 @Service
 public class MealService {
+
+    private static final Logger log = LoggerFactory.getLogger(MealService.class);
 
     private final MealRepository repository;
 
@@ -21,26 +27,39 @@ public class MealService {
     }
 
     public Meal create(int userId, Meal meal) {
+        log.info("MealService:: save meal, userId - {}, meal -{}", userId, meal);
         return repository.save(userId, meal);
     }
 
     public Meal update(int userId, Meal meal) {
+        log.info("MealService:: update meal, userId - {}, meal -{}", userId, meal);
         return checkNotFoundWithId(repository.save(userId, meal), meal.getId());
     }
 
     public void delete(int userId, int id) {
+        log.info("MealService:: delete meal, userId - {}, mealId -{}", userId, id);
         checkNotFoundWithId(repository.delete(userId, id), id);
     }
 
     public Meal get(int userId, int id) {
+        log.info("MealService:: get meal, userId - {}, mealId -{}", userId, id);
         return checkNotFoundWithId(repository.get(userId, id), id);
     }
 
-    public Collection<MealTo> getAll(Integer userId, int caloriesPerDay) {
+    public List<MealTo> getAll(int userId, int caloriesPerDay) {
+        log.info("MealService:: get all mealTos, userId - {}, user caloriesPerDay -{}", userId, caloriesPerDay);
         return MealsUtil.getTos(repository.getAll(userId), caloriesPerDay);
     }
 
-    public Collection<MealTo> getBetween(Integer userId, int caloriesPerDay, FilterTo filter) {
-        return MealsUtil.getTos(repository.getBetween(userId, filter), caloriesPerDay);
+    public List<MealTo> getBetween(int userId, int caloriesPerDay, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
+        log.info("MealService:: get all mealTos, userId - {}, user caloriesPerDay -{}, input filter params: " +
+                        "startDate - {}, endDate - {}, startTime -{}, endTime -{}",
+                userId, caloriesPerDay, startDate, endDate, startTime, endTime);
+        List<Meal> mealsByDay = repository.getBetween(userId,
+                Optional.ofNullable(startDate).orElse(LocalDate.MIN),
+                Optional.ofNullable(endDate).orElse(LocalDate.MAX));
+        return MealsUtil.getFilteredTos(mealsByDay, caloriesPerDay,
+                Optional.ofNullable(startTime).orElse(LocalTime.MIN),
+                Optional.ofNullable(endTime).orElse(LocalTime.MAX));
     }
 }
