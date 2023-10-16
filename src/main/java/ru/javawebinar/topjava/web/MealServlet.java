@@ -47,7 +47,7 @@ public class MealServlet extends HttpServlet {
                 request.getParameter("description"),
                 Integer.parseInt(request.getParameter("calories")));
 
-        log.info(meal.isNew() ? "MealServlet:: create {}" : "MealServlet:: update {}", meal);
+        log.info(meal.isNew() ? "create {}" : "MealServlet:: update {}", meal);
         if (StringUtils.hasText(id)) {
             controller.update(meal, meal.getId());
         } else {
@@ -76,7 +76,7 @@ public class MealServlet extends HttpServlet {
                 request.getRequestDispatcher("/mealForm.jsp").forward(request, response);
                 break;
             case "filter":
-                log.info("MealServlet::getAll with filter");
+                log.info("getAll with filter");
                 LocalDate startDate = DateTimeUtil.toLocalDate(request.getParameter("startDate"));
                 LocalDate endDate = DateTimeUtil.toLocalDate(request.getParameter("endDate"));
                 LocalTime startTime = DateTimeUtil.toLocalTime(request.getParameter("startTime"));
@@ -85,7 +85,7 @@ public class MealServlet extends HttpServlet {
                 request.getRequestDispatcher("/meals.jsp").forward(request, response);
             case "all":
             default:
-                log.info("MealServlet::getAll");
+                log.info("getAll");
                 request.setAttribute("meals", controller.getAll());
                 request.getRequestDispatcher("/meals.jsp").forward(request, response);
                 break;

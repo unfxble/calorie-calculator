@@ -29,9 +29,5 @@ public class DateTimeUtil {
     public static LocalTime toLocalTime(String localTime) {
         return StringUtils.hasText(localTime) ? LocalTime.parse(localTime) : null;
     }
-
-    public static LocalDateTime mergeToLocalDateTime(LocalDate ld, LocalTime lt) {
-        return ld.atTime(lt);
-    }
 }
 

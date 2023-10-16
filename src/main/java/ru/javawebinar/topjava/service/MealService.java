@@ -27,32 +27,32 @@ public class MealService {
     }
 
     public Meal create(int userId, Meal meal) {
-        log.info("MealService:: save meal, userId - {}, meal -{}", userId, meal);
+        log.info("save meal, userId - {}, meal -{}", userId, meal);
         return repository.save(userId, meal);
     }
 
     public Meal update(int userId, Meal meal) {
-        log.info("MealService:: update meal, userId - {}, meal -{}", userId, meal);
+        log.info("update meal, userId - {}, meal -{}", userId, meal);
         return checkNotFoundWithId(repository.save(userId, meal), meal.getId());
     }
 
     public void delete(int userId, int id) {
-        log.info("MealService:: delete meal, userId - {}, mealId -{}", userId, id);
+        log.info("delete meal, userId - {}, mealId -{}", userId, id);
         checkNotFoundWithId(repository.delete(userId, id), id);
     }
 
     public Meal get(int userId, int id) {
-        log.info("MealService:: get meal, userId - {}, mealId -{}", userId, id);
+        log.info("get meal, userId - {}, mealId -{}", userId, id);
         return checkNotFoundWithId(repository.get(userId, id), id);
     }
 
     public List<MealTo> getAll(int userId, int caloriesPerDay) {
-        log.info("MealService:: get all mealTos, userId - {}, user caloriesPerDay -{}", userId, caloriesPerDay);
+        log.info("get all mealTos, userId - {}, user caloriesPerDay -{}", userId, caloriesPerDay);
         return MealsUtil.getTos(repository.getAll(userId), caloriesPerDay);
     }
 
     public List<MealTo> getBetween(int userId, int caloriesPerDay, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        log.info("MealService:: get all mealTos, userId - {}, user caloriesPerDay -{}, input filter params: " +
+        log.info("get all mealTos, userId - {}, user caloriesPerDay -{}, input filter params: " +
                         "startDate - {}, endDate - {}, startTime -{}, endTime -{}",
                 userId, caloriesPerDay, startDate, endDate, startTime, endTime);
         List<Meal> mealsByDay = repository.getBetween(userId,

@@ -28,34 +28,34 @@ public class MealRestController {
     }
 
     public Meal create(Meal meal) {
-        log.info("MealController:: save meal - {}", meal);
+        log.info("save meal - {}", meal);
         checkNew(meal);
         return service.create(authUserId(), meal);
     }
 
     public Meal update(Meal meal, int id) {
-        log.info("MealController:: update meal - {}", meal);
+        log.info("update meal - {}", meal);
         assureIdConsistent(meal, id);
         return service.update(authUserId(), meal);
     }
 
     public void delete(int id) {
-        log.info("MealController:: delete meal with id - {}", id);
+        log.info("delete meal with id - {}", id);
         service.delete(authUserId(), id);
     }
 
     public Meal get(int id) {
-        log.info("MealController:: get meal with id - {}", id);
+        log.info("get meal with id - {}", id);
         return service.get(authUserId(), id);
     }
 
     public List<MealTo> getAll() {
-        log.info("MealController:: get all mealTos");
+        log.info("get all mealTos");
         return service.getAll(authUserId(), authUserCaloriesPerDay());
     }
 
     public List<MealTo> getBetween(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        log.info("MealController:: get all mealTos, input filter params: " +
+        log.info("get all mealTos, input filter params: " +
                 "startDate - {}, endDate - {}, startTime -{}, endTime -{}", startDate, endDate, startTime, endTime);
         return service.getBetween(authUserId(), authUserCaloriesPerDay(),
                 startDate, endDate, startTime, endTime);

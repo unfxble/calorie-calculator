@@ -35,7 +35,7 @@ public class InMemoryMealRepository implements MealRepository {
 
     @Override
     public Meal save(int userId, Meal meal) {
-        log.info("InMemoryMealRepository:: userId - {}, save meal - {}", userId, meal);
+        log.info("userId - {}, save meal - {}", userId, meal);
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
             userMealRepository.computeIfAbsent(userId, k -> new ConcurrentHashMap<>()).put(meal.getId(), meal);
@@ -43,13 +43,13 @@ public class InMemoryMealRepository implements MealRepository {
         }
         // handle case: update, but not present in storage
         return Optional.ofNullable(userMealRepository.get(userId))
-                .map(meals -> meals.computeIfPresent(meal.getId(), (id, oldMeal) -> meal))
+                .map(mealMap -> mealMap.computeIfPresent(meal.getId(), (id, oldMeal) -> meal))
                 .orElse(null);
     }
 
     @Override
     public boolean delete(int userId, int id) {
-        log.info("InMemoryMealRepository:: delete meal with id - {}", id);
+        log.info(" delete meal with id - {}", id);
         return Optional.ofNullable(userMealRepository.get(userId))
                 .map(mealMap -> mealMap.remove(id))
                 .isPresent();
@@ -57,21 +57,21 @@ public class InMemoryMealRepository implements MealRepository {
 
     @Override
     public Meal get(int userId, int id) {
-        log.info("InMemoryMealRepository:: get meal with id - {}", id);
+        log.info("get meal with id - {}", id);
         return Optional.ofNullable(userMealRepository.get(userId))
-                .map(meals -> meals.get(id))
+                .map(mealMap -> mealMap.get(id))
                 .orElse(null);
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        log.info("InMemoryMealRepository:: userId - {}, get all meals", userId);
+        log.info("userId - {}, get all meals", userId);
         return filterByPredicate(userId, meal -> true);
     }
 
     @Override
     public List<Meal> getBetween(int userId, LocalDate startDate, LocalDate endDate) {
-        log.info("InMemoryMealRepository:: userId - {}, get all meals with filter startDate - {}, endDate - {}",
+        log.info("userId - {}, get all meals with filter startDate - {}, endDate - {}",
                 userId, startDate, endDate);
         return filterByPredicate(userId, meal -> DateTimeUtil.isBetween(meal.getDate(), startDate, endDate));
     }
