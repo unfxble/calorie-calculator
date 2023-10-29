@@ -30,11 +30,6 @@ public class JpaMealRepository implements MealRepository {
             return meal;
         } else {
             return get(meal.getId(), userId) != null ? em.merge(meal) : null;
-
-            //TODO понять почему не работает со стримами
-//            return Optional.ofNullable(get(meal.getId(), userId))
-//                    .map(em::merge)
-//                    .orElse(null);
         }
     }
 

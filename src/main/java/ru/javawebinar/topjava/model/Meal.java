@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Range;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -26,26 +27,29 @@ import java.time.LocalTime;
                 query = "select m from Meal m where user.id=:userId and m.dateTime>=:startDate and m.dateTime<:endDate order by m.dateTime desc"),
 })
 @Entity
-@Table(name = "meal", uniqueConstraints = @UniqueConstraint(name = "UniqueUserDateTime", columnNames = {"user_id", "date_time"}))
+@Table(name = "meal", uniqueConstraints = @UniqueConstraint(name = "meal_unique_user_datetime_idx", columnNames = {"user_id", "date_time"}))
 public class Meal extends AbstractBaseEntity {
 
     public static final String ALL_SORTED = "Meal.getAllSorted";
     public static final String BETWEEN_HALF_OPEN = "Meal.getBetweenHalfOpen";
     public static final String DELETE = "Meal.delete";
+
     @Column(name = "date_time", nullable = false)
     @NotNull
     private LocalDateTime dateTime;
 
     @Column(name = "description", nullable = false)
     @NotBlank
+    @Range(min = 2, max = 120)
     private String description;
 
     @Column(name = "calories", nullable = false, columnDefinition = "int default 0")
-    @NotNull
     @Range(min = 10, max = 10000)
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public Meal() {
