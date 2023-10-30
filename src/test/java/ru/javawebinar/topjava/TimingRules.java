@@ -14,7 +14,7 @@ public class TimingRules {
     private static final Logger log = LoggerFactory.getLogger("result");
     private static final int MARK_VALUE = 70;
     private static final String DELIM = String.join("", Collections.nCopies(MARK_VALUE + 16, "-"));
-    public static final StringBuilder results = new StringBuilder();
+    private static final StringBuilder results = new StringBuilder();
 
     public static final Stopwatch STOPWATCH = new Stopwatch() {
         @Override

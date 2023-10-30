@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Transactional(readOnly = true)
 public class JpaMealRepository implements MealRepository {
 
     private static final String USER_ID = "userId";
