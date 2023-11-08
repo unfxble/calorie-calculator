@@ -9,6 +9,7 @@ import ru.javawebinar.topjava.service.UserServiceTest;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static ru.javawebinar.topjava.MealTestData.MEAL_MATCHER;
 import static ru.javawebinar.topjava.Profiles.DATAJPA;
 import static ru.javawebinar.topjava.UserTestData.*;
@@ -25,6 +26,13 @@ public class DataJpaUserServiceTest extends UserServiceTest {
 
     @Test
     public void getWithoutMealsTest() {
+        User user = service.getWithMeals(GUEST_ID);
+        USER_MATCHER.assertMatch(user, guest);
+        assertTrue(user.getMeals().isEmpty());
+    }
+
+    @Test
+    public void getNotOwnTest() {
         assertThrows(NotFoundException.class, () -> service.getWithMeals(NOT_FOUND));
     }
 }
