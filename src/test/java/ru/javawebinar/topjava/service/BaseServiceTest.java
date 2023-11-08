@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.service;
 
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
@@ -11,6 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.StringUtils;
 import ru.javawebinar.topjava.ActiveDbProfileResolver;
 
 import java.util.concurrent.TimeUnit;
@@ -34,11 +36,20 @@ public abstract class BaseServiceTest {
     public final Stopwatch stopwatch = new Stopwatch() {
         @Override
         protected void finished(long nanos, Description description) {
-            String result = String.format("\n%-25s %7d", description.getMethodName(), TimeUnit.NANOSECONDS.toMillis(nanos));
+            String result = String.format("\n%-50s %7d", prettyName(description), TimeUnit.NANOSECONDS.toMillis(nanos));
             results.append(result);
             log.info(result + " ms\n");
         }
     };
+
+    private String prettyName(Description description) {
+        return String.format("%s(%s)", description.getMethodName(), description.getTestClass().getSimpleName());
+    }
+
+    @BeforeClass
+    public static void resetResults() {
+        results.setLength(0);
+    }
 
     @AfterClass
     public static void printResult() {
