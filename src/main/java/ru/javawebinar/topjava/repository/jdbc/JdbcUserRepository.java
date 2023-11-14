@@ -1,9 +1,12 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -14,9 +17,15 @@ import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import static ru.javawebinar.topjava.util.ValidationUtil.validateBean;
 
 @Repository
 @Transactional(readOnly = true)
@@ -28,22 +37,22 @@ public class JdbcUserRepository implements UserRepository {
 
     private final SimpleJdbcInsert insertUser;
 
-    private final UserRowExtractor userExtractor;
+    private final UserRowExtractor userExtractor = new UserRowExtractor();
 
     @Autowired
-    public JdbcUserRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate, UserRowExtractor userExtractor) {
+    public JdbcUserRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.insertUser = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("users")
                 .usingGeneratedKeyColumns("id");
 
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-        this.userExtractor = userExtractor;
     }
 
     @Override
     @Transactional
     public User save(User user) {
+        validateBean(user);
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
 
         if (user.isNew()) {
@@ -104,5 +113,30 @@ public class JdbcUserRepository implements UserRepository {
 
     private void deleteRoles(int userId) {
         jdbcTemplate.update("DELETE FROM user_role WHERE user_id=?", userId);
+    }
+
+    private static class UserRowExtractor implements ResultSetExtractor<List<User>> {
+
+        private final BeanPropertyRowMapper<User> userRowMapper;
+
+        public UserRowExtractor() {
+            this.userRowMapper = BeanPropertyRowMapper.newInstance(User.class);
+        }
+
+        @Override
+        public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {
+
+            Map<Integer, User> userMap = new LinkedHashMap<>();
+            while (rs.next()) {
+                User user = userRowMapper.mapRow(rs, rs.getRow());
+                user.setRoles(new HashSet<>());
+                userMap.putIfAbsent(user.getId(), user);
+                String roleName = rs.getString("role");
+                if (roleName != null) {
+                    userMap.get(user.getId()).getRoles().add(Role.valueOf(roleName));
+                }
+            }
+            return new ArrayList<>(userMap.values());
+        }
     }
 }

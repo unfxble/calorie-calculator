@@ -10,17 +10,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-import java.util.Optional;
 import java.util.Set;
 
 public class ValidationUtil {
 
-    private static Validator validator;
-
-    static {
-        validator = Validation.buildDefaultValidatorFactory().getValidator();
-    }
+    private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     private ValidationUtil() {
     }
