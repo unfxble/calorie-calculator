@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -54,11 +55,11 @@ public class JdbcUserRepository implements UserRepository {
     public User save(User user) {
         validateBean(user);
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
-
+        int userId;
         if (user.isNew()) {
             Number newKey = insertUser.executeAndReturnKey(parameterSource);
+            userId = newKey.intValue();
             user.setId(newKey.intValue());
-            saveRoles(newKey.intValue(), new ArrayList<>(user.getRoles()));
         } else {
             if (namedParameterJdbcTemplate.update("""
                        UPDATE users SET name=:name, email=:email, password=:password, 
@@ -66,9 +67,10 @@ public class JdbcUserRepository implements UserRepository {
                     """, parameterSource) == 0) {
                 return null;
             }
+            userId = user.getId();
             deleteRoles(user.getId());
-            saveRoles(user.getId(), new ArrayList<>(user.getRoles()));
         }
+        saveRoles(userId, new ArrayList<>(user.getRoles()));
         return user;
     }
 
@@ -97,18 +99,20 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     private void saveRoles(int userId, List<Role> roles) {
-        jdbcTemplate.batchUpdate("INSERT INTO user_role (user_id, role) VALUES(?,?)",
-                new BatchPreparedStatementSetter() {
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, userId);
-                        ps.setString(2, roles.get(i).name());
-                    }
+        if (!roles.isEmpty()) {
+            jdbcTemplate.batchUpdate("INSERT INTO user_role (user_id, role) VALUES(?,?)",
+                    new BatchPreparedStatementSetter() {
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setInt(1, userId);
+                            ps.setString(2, roles.get(i).name());
+                        }
 
-                    public int getBatchSize() {
-                        return roles.size();
+                        public int getBatchSize() {
+                            return roles.size();
+                        }
                     }
-                }
-        );
+            );
+        }
     }
 
     private void deleteRoles(int userId) {
@@ -116,21 +120,23 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     private static class UserRowExtractor implements ResultSetExtractor<List<User>> {
-
-        private final BeanPropertyRowMapper<User> userRowMapper;
-
-        public UserRowExtractor() {
-            this.userRowMapper = BeanPropertyRowMapper.newInstance(User.class);
-        }
+        private final RowMapper<User> userRowMapper = BeanPropertyRowMapper.newInstance(User.class);
 
         @Override
         public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {
-
             Map<Integer, User> userMap = new LinkedHashMap<>();
             while (rs.next()) {
-                User user = userRowMapper.mapRow(rs, rs.getRow());
-                user.setRoles(new HashSet<>());
-                userMap.putIfAbsent(user.getId(), user);
+                int userId = rs.getInt("id");
+                User user = userMap.computeIfAbsent(userId, u -> {
+                    User newUser;
+                    try {
+                        newUser = userRowMapper.mapRow(rs, rs.getRow());
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    newUser.setRoles(new HashSet<>());
+                    return newUser;
+                });
                 String roleName = rs.getString("role");
                 if (roleName != null) {
                     userMap.get(user.getId()).getRoles().add(Role.valueOf(roleName));
