@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.validateBean;
 
@@ -55,10 +56,8 @@ public class JdbcUserRepository implements UserRepository {
     public User save(User user) {
         validateBean(user);
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
-        int userId;
         if (user.isNew()) {
             Number newKey = insertUser.executeAndReturnKey(parameterSource);
-            userId = newKey.intValue();
             user.setId(newKey.intValue());
         } else {
             if (namedParameterJdbcTemplate.update("""
@@ -67,10 +66,9 @@ public class JdbcUserRepository implements UserRepository {
                     """, parameterSource) == 0) {
                 return null;
             }
-            userId = user.getId();
             deleteRoles(user.getId());
         }
-        saveRoles(userId, new ArrayList<>(user.getRoles()));
+        saveRoles(user.getId(), new ArrayList<>(user.getRoles()));
         return user;
     }
 
@@ -126,8 +124,7 @@ public class JdbcUserRepository implements UserRepository {
         public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {
             Map<Integer, User> userMap = new LinkedHashMap<>();
             while (rs.next()) {
-                int userId = rs.getInt("id");
-                User user = userMap.computeIfAbsent(userId, u -> {
+                User user = userMap.computeIfAbsent(rs.getInt("id"), u -> {
                     User newUser;
                     try {
                         newUser = userRowMapper.mapRow(rs, rs.getRow());
@@ -137,10 +134,8 @@ public class JdbcUserRepository implements UserRepository {
                     newUser.setRoles(new HashSet<>());
                     return newUser;
                 });
-                String roleName = rs.getString("role");
-                if (roleName != null) {
-                    userMap.get(user.getId()).getRoles().add(Role.valueOf(roleName));
-                }
+                Optional.ofNullable(rs.getString("role"))
+                        .ifPresent(role -> user.getRoles().add(Role.valueOf(role)));
             }
             return new ArrayList<>(userMap.values());
         }
