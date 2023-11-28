@@ -5,6 +5,7 @@ import ru.javawebinar.topjava.to.MealTo;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class MealsUtil {
                 .toList();
     }
 
-    private static MealTo createTo(Meal meal, boolean excess) {
+    public static MealTo createTo(Meal meal, boolean excess) {
         return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
     }
 }
