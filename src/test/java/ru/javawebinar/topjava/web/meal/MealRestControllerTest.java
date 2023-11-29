@@ -17,9 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
-import static ru.javawebinar.topjava.UserTestData.user;
 import static ru.javawebinar.topjava.util.MealsUtil.createTo;
-import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 
 class MealRestControllerTest extends AbstractControllerTest {
 
@@ -75,7 +73,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(TO_MATCHER.contentJson(getTos(meals, user.getCaloriesPerDay())));
+                .andExpect(TO_MATCHER.contentJson(mealTos));
     }
 
     @Test
@@ -83,13 +81,13 @@ class MealRestControllerTest extends AbstractControllerTest {
         perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=2020-01-30&startTime=07:00&endDate=2020-01-31&endTime=11:00"))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(TO_MATCHER.contentJson(createTo(meal5, true), createTo(meal1, false)));
+                .andExpect(TO_MATCHER.contentJson(createTo(meal5, true), mealTo1));
     }
 
     @Test
     void getBetweenAll() throws Exception {
-        perform(MockMvcRequestBuilders.get(REST_URL + "filter"))
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=&startTime="))
                 .andExpect(status().isOk())
-                .andExpect(TO_MATCHER.contentJson(getTos(meals, user.getCaloriesPerDay())));
+                .andExpect(TO_MATCHER.contentJson(mealTos));
     }
 }
