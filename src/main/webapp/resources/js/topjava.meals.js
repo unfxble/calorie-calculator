@@ -14,15 +14,7 @@ const ctx = {
 
 function clearFilter() {
     $("#filter")[0].reset();
-    $.get(mealAjaxUrl, ctx.updateTable);
-}
-
-function filterMeal() {
-    $.ajax({
-        type: "GET",
-        url: mealAjaxUrl + "filter",
-        data: $("#filter").serialize()
-    }).done(ctx.datatableApi.clear().rows.add(this).draw())
+    ctx.updateTable();
 }
 
 $(function () {

@@ -58,9 +58,10 @@ public class UserService {
     }
 
     @Transactional
-    public void enable(int id, boolean isEnabled) {
+    @CacheEvict(value = "users", allEntries = true)
+    public void enable(int id, boolean enabled) {
         User user = get(id);
-        user.setEnabled(isEnabled);
-        checkNotFoundWithId(repository.save(user), id);
+        user.setEnabled(enabled);
+        repository.save(user);
     }
 }
