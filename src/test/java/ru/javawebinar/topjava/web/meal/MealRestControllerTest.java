@@ -1,10 +1,10 @@
 package ru.javawebinar.topjava.web.meal;
 
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.model.Meal;
@@ -23,7 +23,6 @@ import static ru.javawebinar.topjava.UserTestData.user;
 import static ru.javawebinar.topjava.util.MealsUtil.createTo;
 import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 
-@Disabled
 class MealRestControllerTest extends AbstractControllerTest {
 
     private static final String REST_URL = MealRestController.REST_URL + '/';
@@ -32,6 +31,7 @@ class MealRestControllerTest extends AbstractControllerTest {
     private MealService mealService;
 
     @Test
+    @WithUserDetails("user@yandex.ru")
     void get() throws Exception {
         perform(MockMvcRequestBuilders.get(REST_URL + MEAL1_ID))
                 .andExpect(status().isOk())
@@ -41,6 +41,13 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void getNoAuth() throws Exception {
+        perform(MockMvcRequestBuilders.get(REST_URL + MEAL1_ID))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithUserDetails("user@yandex.ru")
     void delete() throws Exception {
         perform(MockMvcRequestBuilders.delete(REST_URL + MEAL1_ID))
                 .andExpect(status().isNoContent());
@@ -48,6 +55,7 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails("user@yandex.ru")
     void update() throws Exception {
         Meal updated = getUpdated();
         perform(MockMvcRequestBuilders.put(REST_URL + MEAL1_ID).contentType(MediaType.APPLICATION_JSON)
@@ -58,6 +66,7 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails("user@yandex.ru")
     void createWithLocation() throws Exception {
         Meal newMeal = getNew();
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
@@ -73,6 +82,7 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails("user@yandex.ru")
     void getAll() throws Exception {
         perform(MockMvcRequestBuilders.get(REST_URL))
                 .andExpect(status().isOk())
@@ -82,6 +92,7 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails("user@yandex.ru")
     void getBetween() throws Exception {
         perform(MockMvcRequestBuilders.get(REST_URL + "filter")
                 .param("startDate", "2020-01-30").param("startTime", "07:00")
@@ -92,6 +103,7 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails("user@yandex.ru")
     void getBetweenAll() throws Exception {
         perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=&endTime="))
                 .andExpect(status().isOk())

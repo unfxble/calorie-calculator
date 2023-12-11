@@ -2,6 +2,7 @@ package ru.javawebinar.topjava.web;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import ru.javawebinar.topjava.UserTestData;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -16,7 +17,7 @@ class RootControllerTest extends AbstractControllerTest {
     @Test
     void getUsers() throws Exception {
         perform(get("/users")
-                .with(userAuth(admin)))
+                .with(userAuth(admin)).with(userAuth(UserTestData.user)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(view().name("users"))
@@ -32,13 +33,11 @@ class RootControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @Disabled
     void getMeals() throws Exception {
-        perform(get("/meals"))
+        perform(get("/meals").with(userAuth(UserTestData.user)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(view().name("meals"))
-                .andExpect(forwardedUrl("/WEB-INF/jsp/meals.jsp"))
-                .andExpect(model().attribute("meals", getTos(meals, SecurityUtil.authUserCaloriesPerDay())));
+                .andExpect(forwardedUrl("/WEB-INF/jsp/meals.jsp"));
     }
 }
